@@ -86,11 +86,11 @@ def create_prompt(file_contents, target_file_content):
     """
 
     for file_content in file_contents:
-        prompt += f"\n```csharp\n{file_content}\n```\n"
+        prompt += f"\n```\n{file_content}\n```\n"
 
     prompt += f"""
 # CURRENT FILE:
-```csharp
+```
 {target_file_content}
 ```
 
@@ -132,16 +132,22 @@ def build_index():
     processed_files = 0
 
     # Parse .gitignore file
-    gitignore = parse_gitignore('.gitignore')
+    gitignore_path = os.path.abspath('.gitignore')
+    gitignore = parse_gitignore(gitignore_path)
 
     for root, dirs, files in os.walk("."):
         for file in files:
             if file.endswith(tuple(extensions)):
                 file_path = os.path.join(root, file)
 
+                # Resolve the absolute path to the file
+                absolute_file_path = os.path.abspath(file_path)
+
                 # Skip files that match .gitignore patterns
-                if gitignore(file_path):
+                if gitignore(absolute_file_path):
                     continue
+
+                print(f"Processing {absolute_file_path}")
 
                 # Read the file
                 with open(file_path, 'r') as f:
