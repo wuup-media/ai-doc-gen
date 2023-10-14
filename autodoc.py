@@ -8,8 +8,9 @@ import openai
 import tiktoken
 from gitignore_parser import parse_gitignore
 
+model = "gpt-3.5-turbo-16k"
 
-enc = tiktoken.encoding_for_model("gpt-3.5-turbo-16k")
+enc = tiktoken.encoding_for_model(model)
 
 # Initialize argument parser
 parser = argparse.ArgumentParser()
@@ -80,7 +81,7 @@ def get_file_contents(filenames):
 
 def create_prompt(file_contents, target_file_content):
     prompt = f"""# SYSTEM:
-    You are a C# developer and a competant technical writer.
+    You are a polyglot programmer and a competant technical writer.
 
 # CONTEXT CODE:
     """
@@ -100,6 +101,9 @@ use the context code to help you write the documentation.
 the documentation should be written in markdown.
 each route or route handling function should have its own section.
 there should be examples of how to use each route or route handling function with curl.
+Show examples using the parameters that the route or route handling function accepts.
+
+# Api Documentation:
 
 """
     return prompt
@@ -114,10 +118,9 @@ def get_response(prompt):
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
     return openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
+        model=model,
         messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
+            {"role": "system", "content": prompt}
         ]
     )
 
@@ -126,14 +129,23 @@ def build_index():
 
     # Scan directory for popular language files
     extensions = ['.cs', '.py', '.js', '.java',
-                  '.c', '.cpp', '.go', '.rb', '.php', '.swift']
-    total_files = sum([len(files) for r, d, files in os.walk(
-        ".") if any(f.endswith(tuple(extensions)) for f in files)])
-    processed_files = 0
+                  '.c', '.cpp', '.go', '.rb', '.php', '.swift', '.mustache']
 
     # Parse .gitignore file
     gitignore_path = os.path.abspath('.gitignore')
     gitignore = parse_gitignore(gitignore_path)
+
+    # Count total files taking into account the .gitignore
+    total_files = 0
+    for root, dirs, files in os.walk("."):
+        for file in files:
+            if file.endswith(tuple(extensions)):
+                file_path = os.path.join(root, file)
+                absolute_file_path = os.path.abspath(file_path)
+                if not gitignore(absolute_file_path):
+                    total_files += 1
+
+    processed_files = 0
 
     for root, dirs, files in os.walk("."):
         for file in files:
@@ -162,6 +174,11 @@ def build_index():
                     # Also add an incrementing number to the data to be md5ed, so that each doc is unique
                     unique_id = hashlib.md5(
                         (file_path + str(i)).encode()).hexdigest()
+
+                    if len(collection.get(unique_id)['ids']) > 0:
+                        print(f"  Skipping {unique_id}")
+                        continue
+
                     collection.add(
                         metadatas=[{"filename": file_path}],
                         documents=[sent.text],
