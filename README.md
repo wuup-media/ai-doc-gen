@@ -28,9 +28,26 @@ python -m spacy download en_core_web_sm
 
 ## Usage
 
-Run the autodoc.py script with the target file as an argument:
+### generate
+Generates API documentation for routes or route handling functions in a file.
+
+Parameters:
+- `target_file` (required): The file to process.
+- `model`: The model to use for generation. Default value is "gpt-3.5-turbo-16k".
+
+Example usage:
+
 ```bash
-python autodoc.py <target_file>
+python main.py generate myfile.py --model=gpt-3.5-turbo-16k
 ```
 
-Replace `<target_file>` with the path to the file you want to process.
+### index
+Builds an index of code files for efficient searching.
+
+Example usage:
+
+```bash
+python main.py index
+```
+
+Note: This command needs to be run before using the `generate` command.
