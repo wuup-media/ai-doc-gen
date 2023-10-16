@@ -1,6 +1,6 @@
 # ai-doc-gen
 
-This project uses a virtual environment to manage dependencies. Follow the instructions below to set up the project.
+A tool for generating API documentation from code using AI.
 
 ## Setup
 
