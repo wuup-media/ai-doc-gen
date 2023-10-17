@@ -23,7 +23,7 @@ def generate(target_file, model):
 
     token_count = get_token_count(prompt, model)
 
-    print(prompt)
+    # print(prompt)
     print(f"Token count: {token_count}")
 
     response = get_response(prompt, model)

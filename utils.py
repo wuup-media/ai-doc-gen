@@ -25,20 +25,21 @@ def break_into_sentences(text: str) -> List[str]:
     return list(doc.sents)
 
 
-def get_filenames(results: dict) -> Set[str]:
+def get_filenames(results: dict) -> List[str]:
     """
     Extracts filenames from the results.
 
     :param results: The results to extract filenames from.
     """
-    filenames = set()
+    filenames = []
     for metadata in results['metadatas']:
         for item in metadata:
-            filenames.add(item['filename'])
+            if item['filename'] not in filenames:
+                filenames.append(item['filename'])
     return filenames
 
 
-def get_files_data(filenames: Set[str], model: str = "gpt-3.5-turbo-16k") -> List[str]:
+def get_files_data(filenames: List[str], model: str = "gpt-3.5-turbo-16k") -> List[str]:
     """
     Reads the content of the files and encodes them.
 
@@ -55,13 +56,15 @@ def get_files_data(filenames: Set[str], model: str = "gpt-3.5-turbo-16k") -> Lis
 
     file_contents = []
     total_tokens = 0
-    for filename in list(filenames):
+    for filename in filenames:
+        print(f"Reading {filename}")
         file_content = read_file(filename)
         tokens = enc.encode(file_content)
         if total_tokens + len(tokens) > max_tokens:
             break
         total_tokens += len(tokens)
         file_contents.append(file_content)
+
     return file_contents
 
 
